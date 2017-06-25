@@ -1,4 +1,3 @@
-import csv
 import pandas
 import re
 import os
@@ -85,4 +84,9 @@ def re_test():
     elif ext == ".png":
         text = text.replace('-s.png', '.png')
 
-csv_test()
+for n in [1, 2, 3]:
+    if n % 2 == 0:
+        print("gusu")
+        break
+    print("kisu")
+

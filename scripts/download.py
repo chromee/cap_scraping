@@ -94,23 +94,30 @@ def parse_gif(response):
 
 
 if __name__ == "__main__":
-    csv_dir = os.path.join(PROJECT_DIR, "datas/2017_winter.csv")
+    csv_dir = os.path.join(PROJECT_DIR, "datas/2016_fall.csv")
     csv = pandas.read_csv(csv_dir)
     for anime in csv.columns.values.tolist():
         html_url_array = csv[anime].tolist()
-        anime_no = 1
+        anime_no = 0
         for html_url in html_url_array:
-            if html_url == html_url:    #NaN回避
-                img_url_array = get_img_url(html_url)
-                img_index = 1
-                for img_url in img_url_array:
-                    is_cap = check_img_type(img_url)
-                    if is_cap:
-                        img_url = remake_img_url(img_url)
-                        print(img_url)
-                        image = download_image(img_url)
-                        file_name = make_filename(anime, anime_no, img_index, img_url)
-                        save_image(file_name, image)
-                        img_index += 1
             anime_no += 1
+            if html_url != html_url:    #NaN回避
+                print("NaN html_url")
+                continue
+            img_url_array = get_img_url(html_url)
+            img_index = 1
+            for img_url in img_url_array:
+                is_cap = check_img_type(img_url)
+                if not is_cap:
+                    print("not cap image")
+                    continue
+                try:
+                    img_url = remake_img_url(img_url)
+                    print(img_url)
+                    image = download_image(img_url)
+                    file_name = make_filename(anime, anime_no, img_index, img_url)
+                    save_image(file_name, image)
+                    img_index += 1
+                except requests.exceptions.RequestException as e:
+                    print(e)
 
