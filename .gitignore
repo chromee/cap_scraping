@@ -4,3 +4,4 @@ cap
 *.jpeg
 *.png
 *.gif
+scripts/__pycache__/*
