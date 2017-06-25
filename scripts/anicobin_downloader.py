@@ -47,13 +47,6 @@ def main():
         return
     csv = pandas.read_csv(csv_dir)
 
-    print("ダウンロードする画像サイズの下限を入力(x,y)")
-    x, y = int(input().split(","))
-    x, y = int(x), int(y)
-    if x < 0 or y < 0:
-        print("0以上を入力せんかい")
-        return
-
     for anime in csv.columns.values.tolist():
         url_array = csv[anime].tolist()
         story_no = 1
@@ -64,8 +57,7 @@ def main():
             img_url_array = Image.get_img_url(url)
             img_index = 1
             for img_url in img_url_array:
-                image_size = Image.get_size(img_url)
-                if image_size[0] > x and image_size[1] > y:
+                if check_img_type(img_url):
                     img_url = remake_img_url(img_url)
                     image = Image.download(img_url)
                     file_name = make_filename(anime, story_no, img_index, img_url)
