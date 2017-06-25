@@ -1,6 +1,7 @@
 import os
 import re
 import pandas
+import requests
 from scripts.image import Image
 
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
@@ -24,8 +25,8 @@ def remake_img_url(img_url):
     return remaked_url
 
 
-def make_filename(anime, story_no, img_index, img_url):
-    anime_dir = os.path.join(PROJECT_DIR, "cap/%s" % anime)
+def make_filename(csv_name, anime, story_no, img_index, img_url):
+    anime_dir = os.path.join(PROJECT_DIR, "cap/%s/%s" % (csv_name, anime))
     if not os.path.exists(anime_dir):
         os.mkdir(anime_dir)
     base_dir = os.path.join(anime_dir, "%s_%s話" % (anime, story_no))
@@ -41,37 +42,37 @@ def make_filename(anime, story_no, img_index, img_url):
 def main():
     print("dataフォルダの中のcsvファイルの名前を入力(拡張子も一緒に)")
     csv_name = input()
-    csv_dir = os.path.join(PROJECT_DIR, "datas/" + csv_name)
+    csv_dir = os.path.join(PROJECT_DIR, "data/" + csv_name)
     if not os.path.exists(csv_dir):
         print("csvファイルがないぞ！")
         return
     csv = pandas.read_csv(csv_dir)
 
-    print("ダウンロードする画像サイズの下限を入力(x,y)")
-    x, y = int(input().split(","))
-    x, y = int(x), int(y)
-    if x < 0 or y < 0:
-        print("0以上を入力せんかい")
-        return
-
     for anime in csv.columns.values.tolist():
         url_array = csv[anime].tolist()
-        story_no = 1
+        story_no = 0
         for url in url_array:
+            story_no += 1
             if url != url:
                 print("this is nan row!!")
                 break
             img_url_array = Image.get_img_url(url)
             img_index = 1
             for img_url in img_url_array:
-                image_size = Image.get_size(img_url)
-                if image_size[0] > x and image_size[1] > y:
+                is_cap = check_img_type(img_url)
+                if not is_cap:
+                    print("this is not cap image")
+                    continue
+                try:
                     img_url = remake_img_url(img_url)
+                    print(img_url)
                     image = Image.download(img_url)
-                    file_name = make_filename(anime, story_no, img_index, img_url)
+                    file_name = make_filename(csv_name, anime, story_no, img_index, img_url)
                     Image.save(image, file_name)
                     img_index += 1
-            story_no += 1
+                except requests.exceptions.RequestException as e:
+                    print(e)
+                    continue
 
 if __name__ == "__main__":
     main()
