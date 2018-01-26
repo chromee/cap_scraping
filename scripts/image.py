@@ -1,33 +1,10 @@
-from bs4 import BeautifulSoup
-import requests
-import urllib.request
 import struct
+import os
+
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
 
 
 class Image:
-
-    @staticmethod
-    def get_img_url(html_url, timeout=10):
-        response = requests.get(html_url, allow_redirects=True, timeout=timeout)
-        soup = BeautifulSoup(response.text)
-        img_url_array = [link.get('src') for link in soup.find_all('img')]
-        return img_url_array
-
-    @staticmethod
-    def get_size(url):
-        response = urllib.request.urlopen(url)
-        size = (-1, -1)
-        if response.status == 200:
-            signature = response.read(2)
-            if signature == b'\xff\xd8':  # jpg
-                size = Image.parse_jpeg(response)
-            elif signature == b'\x89\x50':  # png
-                size = Image.parse_png(response)
-            elif signature == b'\x47\x49':  # gif
-                size = Image.parse_gif(response)
-        response.close()
-        return size
-
     @staticmethod
     def parse_jpeg(response):
         while not response.closed:
@@ -49,9 +26,18 @@ class Image:
         return width, height
 
     @staticmethod
-    def download(img_url, timeout=10):
-        response = requests.get(img_url, allow_redirects=True, timeout=timeout)
-        return response.content
+    def make_filename(anime, story_no, img_index, img_url):
+        anime_dir = os.path.join(PROJECT_DIR, "cap\%s" % anime)
+        if not os.path.exists(anime_dir):
+            os.mkdir(anime_dir)
+        base_dir = os.path.join(anime_dir, "%s_%s話" % (anime, story_no))
+        if not os.path.exists(base_dir):
+            os.mkdir(base_dir)
+        title = "%s_%s_%s" % (anime, story_no, img_index)
+        ext = os.path.splitext(img_url)[1]
+        file_name = title + ext
+        full_path = os.path.join(base_dir, file_name)
+        return full_path
 
     @staticmethod
     def save(image, file_name):
